@@ -22,9 +22,7 @@ class JsonPair {
   // Returns the key.
   JsonString key() const {
     if (iterator_)
-      return JsonString(iterator_.key(), iterator_.ownsKey()
-                                             ? JsonString::Copied
-                                             : JsonString::Linked);
+      return iterator_.key();
     else
       return JsonString();
   }
@@ -48,9 +46,7 @@ class JsonPairConst {
   // Returns the key.
   JsonString key() const {
     if (iterator_)
-      return JsonString(iterator_.key(), iterator_.ownsKey()
-                                             ? JsonString::Copied
-                                             : JsonString::Linked);
+      return iterator_.key();
     else
       return JsonString();
   }

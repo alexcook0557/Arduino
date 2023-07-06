@@ -5,6 +5,7 @@
 #pragma once
 
 #include <ArduinoJson/Memory/ResourceManager.hpp>
+#include <ArduinoJson/Polyfills/attributes.hpp>
 #include <ArduinoJson/Polyfills/integer.hpp>
 #include <ArduinoJson/Polyfills/limits.hpp>
 #include <ArduinoJson/Polyfills/type_traits.hpp>
@@ -85,15 +86,11 @@ class VariantSlot {
     ownedKey_ = k;
   }
 
-  const char* key() const {
+  FORCE_INLINE JsonString key() const {
     if (flags_ & OWNED_KEY_BIT)
-      return ownedKey_->data;
+      return JsonString(ownedKey_->data, ownedKey_->length, JsonString::Copied);
     else
-      return linkedKey_;
-  }
-
-  bool ownsKey() const {
-    return (flags_ & OWNED_KEY_BIT) != 0;
+      return JsonString(linkedKey_, JsonString::Linked);
   }
 };
 

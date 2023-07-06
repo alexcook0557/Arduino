@@ -49,8 +49,7 @@ class CollectionIterator {
     return *data();
   }
 
-  const char* key() const;
-  bool ownsKey() const;
+  JsonString key() const;
 
   VariantData* data() {
     return reinterpret_cast<VariantData*>(slot_);

@@ -73,7 +73,8 @@ class MsgPackSerializer : public Visitor<size_t> {
       writeInteger(uint32_t(n));
     }
     for (auto it = object.begin(); it; ++it) {
-      visitString(it.key());
+      auto key = it.key();
+      visitString(key.c_str());
       it->accept(*this);
     }
     return bytesWritten();

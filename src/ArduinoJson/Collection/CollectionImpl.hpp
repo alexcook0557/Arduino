@@ -11,14 +11,9 @@
 
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
-inline const char* CollectionIterator::key() const {
+inline JsonString CollectionIterator::key() const {
   ARDUINOJSON_ASSERT(slot_ != nullptr);
   return slot_->key();
-}
-
-inline bool CollectionIterator::ownsKey() const {
-  ARDUINOJSON_ASSERT(slot_ != nullptr);
-  return slot_->ownsKey();
 }
 
 inline CollectionIterator& CollectionIterator::operator++() {
@@ -76,8 +71,9 @@ inline size_t CollectionData::memoryUsage() const {
   size_t total = 0;
   for (VariantSlot* s = head_; s; s = s->next()) {
     total += sizeof(VariantSlot) + s->data()->memoryUsage();
-    if (s->ownsKey())
-      total += sizeofString(strlen(s->key()));
+    auto key = s->key();
+    if (!key.isLinked())
+      total += sizeofString(s->key().size());
   }
   return total;
 }

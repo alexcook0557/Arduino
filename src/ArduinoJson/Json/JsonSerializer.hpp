@@ -43,7 +43,9 @@ class JsonSerializer : public Visitor<size_t> {
     auto it = object.begin();
 
     while (it) {
-      formatter_.writeString(it.key());
+      auto key = it.key();
+      formatter_.writeString(key.c_str());
+
       write(':');
       it->accept(*this);
 

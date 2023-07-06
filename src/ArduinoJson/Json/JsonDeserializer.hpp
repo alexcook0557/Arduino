@@ -278,6 +278,9 @@ class JsonDeserializer {
           // Save key in memory pool.
           auto savedKey = stringBuilder_.save();
 
+          // HACK: force end at first NUL
+          savedKey->length = uint16_t(::strlen(savedKey->data));
+
           // Allocate slot in object
           member = object.addMember(savedKey, resources_);
           if (!member)

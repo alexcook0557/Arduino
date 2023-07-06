@@ -45,9 +45,8 @@ inline bool ObjectData::copyFrom(const ObjectData& src,
   clear(resources);
 
   for (auto it = src.begin(); it; ++it) {
-    ARDUINOJSON_ASSERT(it.key() != 0);
-    JsonString key(it.key(),
-                   it.ownsKey() ? JsonString::Copied : JsonString::Linked);
+    auto key = it.key();
+    ARDUINOJSON_ASSERT(!key.isNull());
     auto var = addMember(adaptString(key), resources);
     if (!var)
       return false;
