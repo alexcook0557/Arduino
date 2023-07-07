@@ -44,7 +44,7 @@ class JsonSerializer : public Visitor<size_t> {
 
     while (it) {
       auto key = it.key();
-      formatter_.writeString(key.c_str());
+      formatter_.writeString(key.c_str(), key.size());
 
       write(':');
       it->accept(*this);
@@ -62,11 +62,6 @@ class JsonSerializer : public Visitor<size_t> {
 
   size_t visitFloat(JsonFloat value) {
     formatter_.writeFloat(value);
-    return bytesWritten();
-  }
-
-  size_t visitString(const char* value) {
-    formatter_.writeString(value);
     return bytesWritten();
   }
 

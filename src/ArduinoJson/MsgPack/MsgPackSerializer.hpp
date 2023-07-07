@@ -74,14 +74,10 @@ class MsgPackSerializer : public Visitor<size_t> {
     }
     for (auto it = object.begin(); it; ++it) {
       auto key = it.key();
-      visitString(key.c_str());
+      visitString(key.c_str(), key.size());
       it->accept(*this);
     }
     return bytesWritten();
-  }
-
-  size_t visitString(const char* value) {
-    return visitString(value, strlen(value));
   }
 
   size_t visitString(const char* value, size_t n) {

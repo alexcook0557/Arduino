@@ -47,7 +47,7 @@ class PrettyJsonSerializer : public JsonSerializer<TWriter> {
       while (it) {
         indent();
         auto key = it.key();
-        base::visitString(key.c_str());
+        base::visitString(key.c_str(), key.size());
         base::write(": ");
         it->accept(*this);
 

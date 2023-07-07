@@ -270,16 +270,13 @@ class JsonDeserializer {
 
       JsonString key = stringBuilder_.str();
 
-      TFilter memberFilter = filter[key.c_str()];
+      TFilter memberFilter = filter[key];
 
       if (memberFilter.allow()) {
-        auto member = object.getMember(adaptString(key.c_str()));
+        auto member = object.getMember(adaptString(key));
         if (!member) {
           // Save key in memory pool.
           auto savedKey = stringBuilder_.save();
-
-          // HACK: force end at first NUL
-          savedKey->length = uint16_t(::strlen(savedKey->data));
 
           // Allocate slot in object
           member = object.addMember(savedKey, resources_);

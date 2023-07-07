@@ -486,7 +486,7 @@ class MsgPackDeserializer {
         return err;
 
       JsonString key = stringBuilder_.str();
-      TFilter memberFilter = filter[key.c_str()];
+      TFilter memberFilter = filter[key];
       VariantData* member;
 
       if (memberFilter.allow()) {
