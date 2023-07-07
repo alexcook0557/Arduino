@@ -35,6 +35,8 @@ class VariantSlot {
 
   VariantSlot() : flags_(0), next_(0), key_(0) {}
 
+  void release(ResourceManager* resources);
+
   VariantData* data() {
     return reinterpret_cast<VariantData*>(&content_);
   }

@@ -41,7 +41,7 @@ inline void CollectionData::addSlot(VariantSlot* slot) {
 
 inline void CollectionData::clear(ResourceManager* resources) {
   for (auto slot = head_; slot; slot = slot->next())
-    slotRelease(slot, resources);
+    slot->release(resources);
   head_ = 0;
   tail_ = 0;
 }
@@ -69,7 +69,7 @@ inline void CollectionData::remove(iterator it, ResourceManager* resources) {
     head_ = next;
   if (!next)
     tail_ = prev;
-  slotRelease(curr, resources);
+  curr->release(resources);
 }
 
 inline size_t CollectionData::memoryUsage() const {
