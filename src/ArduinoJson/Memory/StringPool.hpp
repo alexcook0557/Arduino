@@ -82,21 +82,23 @@ class StringPool {
     return nullptr;
   }
 
-  void dereference(const char* s, Allocator* allocator) {
+  void dereference(StringNode* s, Allocator* allocator) {
+    ARDUINOJSON_ASSERT(s != nullptr);
+    ARDUINOJSON_ASSERT(s->references > 0);
+    if (--s->references > 0)
+      return;
     StringNode* prev = nullptr;
     for (auto node = strings_; node; node = node->next) {
-      if (node->data == s) {
-        if (--node->references == 0) {
-          if (prev)
-            prev->next = node->next;
-          else
-            strings_ = node->next;
-          StringNode::destroy(node, allocator);
-        }
-        return;
+      if (node == s) {
+        if (prev)
+          prev->next = node->next;
+        else
+          strings_ = node->next;
+        break;
       }
       prev = node;
     }
+    StringNode::destroy(s, allocator);
   }
 
  private:

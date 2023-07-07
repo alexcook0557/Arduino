@@ -545,7 +545,7 @@ class VariantData {
  private:
   void release(ResourceManager* resources) {
     if (flags_ & OWNED_VALUE_BIT)
-      resources->dereferenceString(content_.asOwnedString->data);
+      resources->dereferenceString(content_.asOwnedString);
 
     auto collection = asCollection();
     if (collection)

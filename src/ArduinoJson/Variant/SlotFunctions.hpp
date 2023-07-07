@@ -20,7 +20,7 @@ inline size_t slotSize(const VariantSlot* var) {
 
 inline void VariantSlot::release(ResourceManager* resources) {
   if (flags_ & OWNED_KEY_BIT)
-    resources->dereferenceString(key_);
+    resources->dereferenceString(ownedKey_);
   data()->setNull(resources);
 }
 

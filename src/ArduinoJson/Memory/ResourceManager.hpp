@@ -114,7 +114,7 @@ class ResourceManager {
     StringNode::destroy(node, allocator_);
   }
 
-  void dereferenceString(const char* s) {
+  void dereferenceString(StringNode* s) {
     stringPool_.dereference(s, allocator_);
   }
 

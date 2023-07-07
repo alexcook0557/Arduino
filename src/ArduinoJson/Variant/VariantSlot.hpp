@@ -23,7 +23,10 @@ class VariantSlot {
   VariantContent content_;
   uint8_t flags_;
   VariantSlotDiff next_;
-  const char* key_;
+  union {
+    StringNode* ownedKey_;
+    const char* linkedKey_;
+  };
 
  public:
   // Placement new
@@ -33,7 +36,7 @@ class VariantSlot {
 
   static void operator delete(void*, void*) noexcept {}
 
-  VariantSlot() : flags_(0), next_(0), key_(0) {}
+  VariantSlot() : flags_(0), next_(0), linkedKey_(0) {}
 
   void release(ResourceManager* resources);
 
@@ -73,17 +76,20 @@ class VariantSlot {
   void setKey(const char* k) {
     ARDUINOJSON_ASSERT(k);
     flags_ &= VALUE_MASK;
-    key_ = k;
+    linkedKey_ = k;
   }
 
   void setKey(StringNode* k) {
     ARDUINOJSON_ASSERT(k);
     flags_ |= OWNED_KEY_BIT;
-    key_ = k->data;
+    ownedKey_ = k;
   }
 
   const char* key() const {
-    return key_;
+    if (flags_ & OWNED_KEY_BIT)
+      return ownedKey_->data;
+    else
+      return linkedKey_;
   }
 
   bool ownsKey() const {
