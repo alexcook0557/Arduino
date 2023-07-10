@@ -74,4 +74,14 @@ static void stringGetChars(TAdaptedString s, char* p, size_t n) {
   }
 }
 
+inline bool stringEquals(const char* s1, size_t n1, const char* s2, size_t n2) {
+  if (n1 != n2)
+    return false;
+  for (size_t i = 0; i < n1; i++) {
+    if (s1[i] != s2[i])
+      return false;
+  }
+  return true;
+}
+
 ARDUINOJSON_END_PRIVATE_NAMESPACE

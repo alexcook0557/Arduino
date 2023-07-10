@@ -22,8 +22,9 @@ inline VariantData* ObjectData::addMember(StringNode* key,
 }
 
 template <typename TAdaptedString>
-inline VariantData* ObjectData::addMember(TAdaptedString key,
-                                          ResourceManager* resources) {
+inline typename enable_if<string_traits<TAdaptedString>::has_data,
+                          VariantData*>::type
+ObjectData::addMember(TAdaptedString key, ResourceManager* resources) {
   ARDUINOJSON_ASSERT(!key.isNull());
   auto slot = resources->allocVariant();
   if (!slot)
@@ -36,6 +37,22 @@ inline VariantData* ObjectData::addMember(TAdaptedString key,
       return nullptr;
     slot->setKey(storedKey);
   }
+  addSlot(slot);
+  return slot->data();
+}
+
+template <typename TAdaptedString>
+inline typename enable_if<!string_traits<TAdaptedString>::has_data,
+                          VariantData*>::type
+ObjectData::addMember(TAdaptedString key, ResourceManager* resources) {
+  ARDUINOJSON_ASSERT(!key.isNull());
+  auto slot = resources->allocVariant();
+  if (!slot)
+    return nullptr;
+  auto storedKey = resources->saveString(key);
+  if (!storedKey)
+    return nullptr;
+  slot->setKey(storedKey);
   addSlot(slot);
   return slot->data();
 }
@@ -85,11 +102,27 @@ VariantData* ObjectData::getOrAddMember(TAdaptedString key,
 }
 
 template <typename TAdaptedString>
-inline ObjectData::iterator ObjectData::findKey(TAdaptedString key) const {
+inline typename enable_if<!string_traits<TAdaptedString>::has_data,
+                          ObjectData::iterator>::type
+ObjectData::findKey(TAdaptedString key) const {
   if (key.isNull())
     return end();
   for (auto it = begin(); it; ++it) {
     if (stringEquals(key, adaptString(it.key())))
+      return it;
+  }
+  return end();
+}
+
+template <typename TAdaptedString>
+inline typename enable_if<string_traits<TAdaptedString>::has_data,
+                          ObjectData::iterator>::type
+ObjectData::findKey(TAdaptedString key) const {
+  if (key.isNull())
+    return end();
+  for (auto it = begin(); it; ++it) {
+    auto itKey = it.key();
+    if (stringEquals(itKey.c_str(), itKey.size(), key.data(), key.size()))
       return it;
   }
   return end();

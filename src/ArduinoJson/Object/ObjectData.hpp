@@ -13,7 +13,14 @@ class ObjectData : public CollectionData {
   VariantData* addMember(StringNode* key, ResourceManager* resources);
 
   template <typename TAdaptedString>
-  VariantData* addMember(TAdaptedString key, ResourceManager* resources);
+  typename enable_if<string_traits<TAdaptedString>::has_data,
+                     VariantData*>::type
+  addMember(TAdaptedString key, ResourceManager* resources);
+
+  template <typename TAdaptedString>
+  typename enable_if<!string_traits<TAdaptedString>::has_data,
+                     VariantData*>::type
+  addMember(TAdaptedString key, ResourceManager* resources);
 
   bool copyFrom(const ObjectData& src, ResourceManager* resources);
 
@@ -63,7 +70,12 @@ class ObjectData : public CollectionData {
 
  private:
   template <typename TAdaptedString>
-  iterator findKey(TAdaptedString key) const;
+  typename enable_if<string_traits<TAdaptedString>::has_data, iterator>::type
+  findKey(TAdaptedString key) const;
+
+  template <typename TAdaptedString>
+  typename enable_if<!string_traits<TAdaptedString>::has_data, iterator>::type
+  findKey(TAdaptedString key) const;
 };
 
 ARDUINOJSON_END_PRIVATE_NAMESPACE

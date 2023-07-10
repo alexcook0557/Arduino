@@ -73,8 +73,24 @@ class StringPool {
     strings_ = node;
   }
 
+  StringNode* get(const char* p, size_t n) const {
+    for (auto node = strings_; node; node = node->next) {
+      if (stringEquals(node->data, node->length, p, n))
+        return node;
+    }
+    return nullptr;
+  }
+
   template <typename TAdaptedString>
-  StringNode* get(const TAdaptedString& str) const {
+  typename enable_if<string_traits<TAdaptedString>::has_data, StringNode*>::type
+  get(const TAdaptedString& str) const {
+    return get(str.data(), str.size());
+  }
+
+  template <typename TAdaptedString>
+  typename enable_if<!string_traits<TAdaptedString>::has_data,
+                     StringNode*>::type
+  get(const TAdaptedString& str) const {
     for (auto node = strings_; node; node = node->next) {
       if (stringEquals(str, adaptString(node->data, node->length)))
         return node;

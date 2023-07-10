@@ -460,7 +460,8 @@ class VariantData {
   }
 
   template <typename TAdaptedString>
-  void setString(TAdaptedString value, ResourceManager* resources) {
+  typename enable_if<string_traits<TAdaptedString>::has_data>::type setString(
+      TAdaptedString value, ResourceManager* resources) {
     setNull(resources);
 
     if (value.isNull())
@@ -470,6 +471,19 @@ class VariantData {
       setLinkedString(value.data());
       return;
     }
+
+    auto dup = resources->saveString(value);
+    if (dup)
+      setOwnedString(dup);
+  }
+
+  template <typename TAdaptedString>
+  typename enable_if<!string_traits<TAdaptedString>::has_data>::type setString(
+      TAdaptedString value, ResourceManager* resources) {
+    setNull(resources);
+
+    if (value.isNull())
+      return;
 
     auto dup = resources->saveString(value);
     if (dup)
