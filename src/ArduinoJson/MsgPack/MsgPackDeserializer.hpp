@@ -17,10 +17,7 @@ template <typename TReader>
 class MsgPackDeserializer {
  public:
   MsgPackDeserializer(ResourceManager* resources, TReader reader)
-      : resources_(resources),
-        reader_(reader),
-        stringBuilder_(resources),
-        foundSomething_(false) {}
+      : resources_(resources), reader_(reader), foundSomething_(false) {}
 
   template <typename TFilter>
   DeserializationError parse(VariantData& variant, TFilter filter,
@@ -336,11 +333,18 @@ class MsgPackDeserializer {
     if (err)
       return err;
 
-    return readString(variant, size);
+    StringNode* node;
+    err = readString(node, size);
+    if (err)
+      return err;
+
+    variant->setOwnedString(node);
+
+    return DeserializationError::Ok;
   }
 
   template <typename T>
-  DeserializationError::Code readString() {
+  DeserializationError::Code readString(StringNode*& str) {
     DeserializationError::Code err;
     T size;
 
@@ -348,7 +352,7 @@ class MsgPackDeserializer {
     if (err)
       return err;
 
-    return readString(size);
+    return readString(str, size);
   }
 
   template <typename T>
@@ -364,32 +368,33 @@ class MsgPackDeserializer {
   }
 
   DeserializationError::Code readString(VariantData* variant, size_t n) {
-    DeserializationError::Code err;
+    StringNode* str;
 
-    err = readString(n);
+    auto err = readString(str, n);
     if (err)
       return err;
 
-    variant->setOwnedString(stringBuilder_.save());
+    variant->setOwnedString(str);
     return DeserializationError::Ok;
   }
 
-  DeserializationError::Code readString(size_t n) {
+  DeserializationError::Code readString(StringNode*& str, size_t n) {
     DeserializationError::Code err;
 
-    stringBuilder_.startString();
-    for (; n; --n) {
+    str = resources_->createString(n);
+    if (!str)
+      return DeserializationError::NoMemory;
+
+    for (size_t i = 0; i < n; ++i) {
       uint8_t c;
 
       err = readBytes(c);
       if (err)
         return err;
 
-      stringBuilder_.append(static_cast<char>(c));
+      str->data[i] = static_cast<char>(c);
     }
-
-    if (!stringBuilder_.isValid())
-      return DeserializationError::NoMemory;
+    str->data[n] = 0;
 
     return DeserializationError::Ok;
   }
@@ -481,25 +486,26 @@ class MsgPackDeserializer {
     }
 
     for (; n; --n) {
-      err = readKey();
+      StringNode* key;
+      err = readKey(key);  // TODO: don't allocate if object is filtered out
       if (err)
         return err;
 
-      JsonString key = stringBuilder_.str();
-      TFilter memberFilter = filter[key.c_str()];
+      TFilter memberFilter = filter[key->data];
       VariantData* member;
 
       if (memberFilter.allow()) {
         ARDUINOJSON_ASSERT(object != 0);
 
         // Save key in memory pool.
-        auto savedKey = stringBuilder_.save();
-
-        member = object->addMember(savedKey, resources_);
-        if (!member)
+        member = object->addMember(key, resources_);
+        if (!member) {
+          resources_->destroyString(key);
           return DeserializationError::NoMemory;
+        }
       } else {
         member = 0;
+        resources_->destroyString(key);
       }
 
       err = parseVariant(member, memberFilter, nestingLimit.decrement());
@@ -510,7 +516,7 @@ class MsgPackDeserializer {
     return DeserializationError::Ok;
   }
 
-  DeserializationError::Code readKey() {
+  DeserializationError::Code readKey(StringNode*& key) {
     DeserializationError::Code err;
     uint8_t code;
 
@@ -519,17 +525,17 @@ class MsgPackDeserializer {
       return err;
 
     if ((code & 0xe0) == 0xa0)
-      return readString(code & 0x1f);
+      return readString(key, code & 0x1f);
 
     switch (code) {
       case 0xd9:
-        return readString<uint8_t>();
+        return readString<uint8_t>(key);
 
       case 0xda:
-        return readString<uint16_t>();
+        return readString<uint16_t>(key);
 
       case 0xdb:
-        return readString<uint32_t>();
+        return readString<uint32_t>(key);
 
       default:
         return DeserializationError::InvalidInput;
@@ -550,7 +556,6 @@ class MsgPackDeserializer {
 
   ResourceManager* resources_;
   TReader reader_;
-  StringBuilder stringBuilder_;
   bool foundSomething_;
 };
 
